@@ -8,25 +8,26 @@ import { controllerWrapper } from '../utils/controller-wrapper.util'
 
 export const bikesRouter: Router = express.Router()
 
-const {
-  findAll: getAllBikes,
-  findOneById: getOneBike,
-  updateOneById: updateOneBike,
-  createOne: createOneBike,
-} = bikesController
+const { findAll, findOneById, updateOneById, createOne, deleteOne } = bikesController
 
-bikesRouter.get('/', controllerWrapper(getAllBikes))
+bikesRouter.get('/', controllerWrapper(findAll))
 
 bikesRouter.get(
   '/:id',
   validateRequest({ params: objectIdParamSchema }),
-  controllerWrapper(getOneBike),
+  controllerWrapper(findOneById),
 )
+
+bikesRouter.post('/', validateRequest({ body: createBikeSchema }), controllerWrapper(createOne))
 
 bikesRouter.patch(
   '/:id',
   validateRequest({ body: updateBikeShema, params: objectIdParamSchema }),
-  controllerWrapper(updateOneBike),
+  controllerWrapper(updateOneById),
 )
 
-bikesRouter.post('/', validateRequest({ body: createBikeSchema }), controllerWrapper(createOneBike))
+bikesRouter.delete(
+  '/:id',
+  validateRequest({ params: objectIdParamSchema }),
+  controllerWrapper(deleteOne),
+)

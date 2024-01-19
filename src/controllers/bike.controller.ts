@@ -13,12 +13,14 @@ export class BikeController {
   }
 
   findOneById = async (req: Request<{ id: string }>, res: Response) => {
-    const bike = await this.bikesService.findOneBikeById(req.params.id)
+    const { id } = req.params
+    const bike = await this.bikesService.findOneById(id)
     res.json(bike)
   }
 
   updateOneById = async (req: Request<{ id: string }, {}, UpdateBike>, res: Response) => {
     const { id } = req.params
+    console.log(req.body)
     const bike = await this.bikesService.updateOneById(id, req.body)
     res.json(bike)
   }
@@ -26,6 +28,12 @@ export class BikeController {
   createOne = async (req: Request<{}, {}, CreateBike>, res: Response) => {
     const bike = await this.bikesService.createOne(req.body)
     res.status(StatusCodes.CREATED).json(bike)
+  }
+
+  deleteOne = async (req: Request<{ id: string }>, res: Response) => {
+    const { id } = req.params
+    await this.bikesService.deleteOne(id)
+    res.status(StatusCodes.NO_CONTENT).send()
   }
 }
 

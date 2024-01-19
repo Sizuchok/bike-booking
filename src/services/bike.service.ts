@@ -8,10 +8,10 @@ import { CreateBike, UpdateBike } from '../types/bike/bike.types'
 export class BikeService {
   constructor(private collection: Collection<Document>) {}
 
-  findOneBikeById = async (id: string) => {
+  findOneById = async (id: string) => {
     const bike = await this.collection.findOne({ _id: new ObjectId(id) })
 
-    if (!bike) throw new HttpError(StatusCodes.NOT_FOUND, 'Bike not found.')
+    if (!bike) throw new HttpError(StatusCodes.NOT_FOUND, 'Bike not found')
 
     return bike
   }
@@ -30,7 +30,7 @@ export class BikeService {
       },
     )
 
-    if (!bike) throw new HttpError(StatusCodes.BAD_REQUEST, 'Bike not found.')
+    if (!bike) throw new HttpError(StatusCodes.BAD_REQUEST, 'Bike not found for update')
 
     return bike
   }
@@ -40,7 +40,19 @@ export class BikeService {
 
     const bike = await this.collection.findOne({ _id: new ObjectId(result.insertedId) })
 
+    if (!result.insertedId) {
+      throw new HttpError(StatusCodes.BAD_GATEWAY, 'Failed to add a bike')
+    }
+
     return bike
+  }
+
+  deleteOne = async (id: string) => {
+    const result = await this.collection.deleteOne({ _id: new ObjectId(id) })
+
+    if (!result.deletedCount) {
+      throw new HttpError(StatusCodes.BAD_GATEWAY, 'Bike not found for deletion')
+    }
   }
 }
 
