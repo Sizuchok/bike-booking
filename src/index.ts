@@ -1,5 +1,6 @@
+import './types/global/process-env.types'
+// --.env--
 import MongoStore from 'connect-mongo'
-import 'dotenv/config'
 import express from 'express'
 import session from 'express-session'
 import passport from 'passport'
