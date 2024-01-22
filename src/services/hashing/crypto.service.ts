@@ -22,3 +22,5 @@ export class CryptoService implements HashingService {
     return hash === encrypted
   }
 }
+
+export const cryptoService = new CryptoService()

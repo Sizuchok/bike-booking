@@ -1,3 +1,10 @@
-export const MONGO_DB_NAME = 'bikeBooking' as const
+const COLLECTIONS = {
+  BIKES: 'bikes',
+  SESSIONS: 'sessions',
+  USERS: 'users',
+} as const
 
-export const MONGO_COLLECTION_EMPLOYESS = 'bikes' as const
+export const MONGO = {
+  DB_NAME: 'bikeBooking',
+  COLLECTIONS,
+} as const

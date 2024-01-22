@@ -1,14 +1,13 @@
 import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { BikeService, bikesService } from '../services/bike.service'
-import { CreateBike, UpdateBike } from '../types/bike/bike.types'
+import { CreateBike, UpdateBike } from '../types/bike.types'
 
 export class BikeController {
   constructor(private bikesService: BikeService) {}
 
   findAll = async (req: Request, res: Response) => {
     const bikes = await this.bikesService.findAllBikes()
-
     res.json(bikes)
   }
 

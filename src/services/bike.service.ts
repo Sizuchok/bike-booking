@@ -1,12 +1,12 @@
 import { StatusCodes } from 'http-status-codes'
-import { Collection, Document, ObjectId } from 'mongodb'
-import { MONGO_COLLECTION_EMPLOYESS, MONGO_DB_NAME } from '../const/mongodb-key.const'
+import { Collection, ObjectId } from 'mongodb'
+import { MONGO } from '../const/mongodb-key.const'
 import { client } from '../db/config'
 import { HttpError } from '../error/http-error'
-import { CreateBike, UpdateBike } from '../types/bike/bike.types'
+import { Bike, CreateBike, UpdateBike } from '../types/bike.types'
 
 export class BikeService {
-  constructor(private collection: Collection<Document>) {}
+  constructor(private collection: Collection<Omit<Bike, '_id'>>) {}
 
   findOneById = async (id: string) => {
     const bike = await this.collection.findOne({ _id: new ObjectId(id) })
@@ -57,5 +57,5 @@ export class BikeService {
 }
 
 export const bikesService = new BikeService(
-  client.db(MONGO_DB_NAME).collection(MONGO_COLLECTION_EMPLOYESS),
+  client.db(MONGO.DB_NAME).collection(MONGO.COLLECTIONS.BIKES),
 )
