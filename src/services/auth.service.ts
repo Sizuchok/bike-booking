@@ -3,8 +3,9 @@ import { Collection, ObjectId } from 'mongodb'
 import { MONGO } from '../const/mongodb-key.const'
 import { client } from '../db/config'
 import { HttpError } from '../error/http-error'
-import { SignUp, UserForMongo } from '../types/user.types'
+import { SignUp, User, UserForMongo } from '../types/user.types'
 import { cryptoService } from './hashing/crypto.service'
+import { jwtService } from './jwt.service'
 
 export class AuthService {
   constructor(private collection: Collection<UserForMongo>) {}
@@ -31,6 +32,15 @@ export class AuthService {
 
   findOneByEmail = async (email: string) => {
     return this.collection.findOne({ email })
+  }
+
+  signInWithJwt = (user: User) => {
+    const jwt = jwtService.issue({
+      sub: user._id.toString(),
+      ttl: 60,
+    })
+
+    return jwt
   }
 }
 

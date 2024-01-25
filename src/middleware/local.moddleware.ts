@@ -41,3 +41,4 @@ passport.deserializeUser<string>(async (id, done) => {
 passport.use(LocalStrategy)
 
 export const localMiddleware = passport.authenticate('local')
+export const localMiddlewareNoSession = passport.authenticate('local', { session: false })
