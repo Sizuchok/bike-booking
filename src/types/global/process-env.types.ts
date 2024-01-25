@@ -7,6 +7,7 @@ const processEnvSchema = z.object({
   MONGO_DB_USER: z.string(),
   MONGO_DB_PASSWORD: z.string(),
   MONGO_DB_URL: z.string(),
+  SECRET_KEY: z.string(),
 })
 
 export const dotEnv = processEnvSchema.parse(process.env)
