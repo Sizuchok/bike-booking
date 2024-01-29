@@ -8,7 +8,7 @@ import { controllerWrapper } from '../utils/controller-wrapper.util'
 
 export const authRouter: Router = Router()
 
-const { signUp, signIn, signInJwt } = authController
+const { signUp, signIn, signInJwt, refresh } = authController
 
 authRouter.post('/sign-up', validateRequest({ body: signUpSchema }), controllerWrapper(signUp))
 
@@ -25,3 +25,5 @@ authRouter.post(
   localMiddlewareNoSession,
   controllerWrapper(signInJwt),
 )
+
+authRouter.get('/refresh', controllerWrapper(refresh))

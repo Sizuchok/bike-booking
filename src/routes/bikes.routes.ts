@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { bikesController } from '../controllers/bike.controller'
-import { jwtMiddleware } from '../middleware/jwt.middleware'
+import { jwtAuth } from '../middleware/jwt.middleware'
 import { validateRequest } from '../middleware/validator.middleware'
 import { createBikeSchema } from '../schemas/bike/create-bike.schema'
 import { updateBikeShema } from '../schemas/bike/update-bike.schema'
@@ -11,7 +11,7 @@ export const bikesRouter: Router = Router()
 
 const { findAll, findOneById, updateOneById, createOne, deleteOne } = bikesController
 
-bikesRouter.get('/', jwtMiddleware, controllerWrapper(findAll))
+bikesRouter.get('/', jwtAuth, controllerWrapper(findAll))
 
 bikesRouter.get(
   '/:id',
