@@ -13,6 +13,11 @@ export type TokenPair = {
   refreshToken: string
 }
 
+export type TokensAndUser = {
+  tokens: TokenPair
+  user: User
+}
+
 export class AuthService {
   constructor(private collection: Collection<UserForMongo>) {}
 
@@ -40,33 +45,46 @@ export class AuthService {
     return this.collection.findOne({ email })
   }
 
-  private issueTokens = async (user: User) => {
+  private issueTokens = async ({ _id }: User): Promise<TokensAndUser> => {
+    const id = _id.toString()
+
     const accessToken = jwtService.issue({
-      sub: user._id.toString(),
+      sub: id,
       ttl: +dotEnv.JWT_TTL,
     })
 
     const refreshToken = jwtService.issue(
       {
-        sub: user._id.toString(),
+        sub: id,
         ttl: +dotEnv.REFRESH_JWT_TTL,
       },
       dotEnv.REFRESH_JWT_SECRET_KEY,
     )
 
-    await this.collection.updateOne(
-      { _id: new ObjectId(user._id) },
+    const user = await this.collection.findOneAndUpdate(
+      { _id: new ObjectId(id) },
       {
         $push: {
           refreshTokens: refreshToken,
         },
       },
+      {
+        returnDocument: 'after',
+        projection: { password: 0, refreshTokens: 0 },
+      },
     )
 
-    return { accessToken, refreshToken }
+    if (!user) {
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'User not found')
+    }
+
+    return {
+      tokens: { accessToken, refreshToken },
+      user,
+    }
   }
 
-  signInWithJwt = async (user: User): Promise<TokenPair> => {
+  signInWithJwt = async (user: User): Promise<TokensAndUser> => {
     return this.issueTokens(user)
   }
 
@@ -90,9 +108,7 @@ export class AuthService {
       throw new HttpError(StatusCodes.UNAUTHORIZED, 'Recieved invalidated token')
     }
 
-    const tokens = await this.issueTokens(user)
-
-    return { user, tokens }
+    return await this.issueTokens(user)
   }
 }
 
