@@ -3,9 +3,15 @@ import { Collection, ObjectId } from 'mongodb'
 import { MONGO } from '../const/mongodb-key.const'
 import { client } from '../db/config'
 import { HttpError } from '../error/http-error'
+import { dotEnv } from '../types/global/process-env.types'
 import { SignUp, User, UserForMongo } from '../types/user.types'
 import { cryptoService } from './hashing/crypto.service'
 import { jwtService } from './jwt.service'
+
+export type TokenPair = {
+  accessToken: string
+  refreshToken: string
+}
 
 export class AuthService {
   constructor(private collection: Collection<UserForMongo>) {}
@@ -19,7 +25,7 @@ export class AuthService {
 
     const hashedPwd = await cryptoService.hash(credentials.password)
 
-    await this.collection.insertOne({ ...credentials, password: hashedPwd })
+    await this.collection.insertOne({ ...credentials, password: hashedPwd } as User)
   }
 
   findOneById = async (id: string) => {
@@ -34,13 +40,59 @@ export class AuthService {
     return this.collection.findOne({ email })
   }
 
-  signInWithJwt = (user: User) => {
-    const jwt = jwtService.issue({
+  private issueTokens = async (user: User) => {
+    const accessToken = jwtService.issue({
       sub: user._id.toString(),
-      ttl: 60,
+      ttl: +dotEnv.JWT_TTL,
     })
 
-    return jwt
+    const refreshToken = jwtService.issue(
+      {
+        sub: user._id.toString(),
+        ttl: +dotEnv.REFRESH_JWT_TTL,
+      },
+      dotEnv.REFRESH_JWT_SECRET_KEY,
+    )
+
+    await this.collection.updateOne(
+      { _id: new ObjectId(user._id) },
+      {
+        $push: {
+          refreshTokens: refreshToken,
+        },
+      },
+    )
+
+    return { accessToken, refreshToken }
+  }
+
+  signInWithJwt = async (user: User): Promise<TokenPair> => {
+    return this.issueTokens(user)
+  }
+
+  refresh = async (token: string): Promise<{ tokens: TokenPair; user: User }> => {
+    jwtService.verify(token, dotEnv.REFRESH_JWT_SECRET_KEY)
+
+    const user = await this.collection.findOneAndUpdate(
+      {
+        refreshTokens: token,
+      },
+      {
+        $pull: { refreshTokens: token },
+      },
+      {
+        returnDocument: 'after',
+        projection: { password: 0, refreshTokens: 0 },
+      },
+    )
+
+    if (!user) {
+      throw new HttpError(StatusCodes.UNAUTHORIZED, 'Recieved invalidated token')
+    }
+
+    const tokens = await this.issueTokens(user)
+
+    return { user, tokens }
   }
 }
 
