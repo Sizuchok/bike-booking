@@ -3,7 +3,10 @@ import { signInSchema } from '../schemas/user/sign-in.schema'
 import { signUpSchema } from '../schemas/user/sign-up.schema'
 import { MongoId } from './common.types'
 
-export type User = MongoId & SignUp
+export type User = MongoId &
+  SignUp & {
+    refreshTokens: string[]
+  }
 export type UserForMongo = Omit<User, '_id'>
 
 export type SignUp = z.infer<typeof signUpSchema>

@@ -19,7 +19,7 @@ type Payload = Pick<FullPayload, 'sub'> & {
 class JwtService {
   constructor(private secretKey: string) {}
 
-  issue = (payload: Payload) => {
+  issue = (payload: Payload, refreshSecret?: string) => {
     const header: JwtHeader = {
       alg: 'HS256',
       typ: 'JWT',
@@ -36,14 +36,14 @@ class JwtService {
     const bs64Header = base64url(JSON.stringify(header))
     const bs64Payload = base64url(JSON.stringify(payloadFull))
 
-    const bs64JwtSignature = createHmac('sha256', this.secretKey)
+    const bs64JwtSignature = createHmac('sha256', refreshSecret ?? this.secretKey)
       .update(`${bs64Header}.${bs64Payload}`)
       .digest('base64url')
 
     return `${bs64Header}.${bs64Payload}.${bs64JwtSignature}`
   }
 
-  verify = (jwt: string) => {
+  verify = (jwt: string, refreshSecret?: string) => {
     const [header, payload, signature] = jwt.split('.')
 
     if (!header || !payload || !signature) {
@@ -55,11 +55,11 @@ class JwtService {
 
     try {
       JSON.parse(headerStr)
-      const jsonPayload: Partial<FullPayload> = JSON.parse(payloadStr)
+      const jsonPayload: FullPayload = JSON.parse(payloadStr)
 
       const { exp } = jsonPayload
 
-      const recreatedSignature = createHmac('sha256', this.secretKey)
+      const recreatedSignature = createHmac('sha256', refreshSecret ?? this.secretKey)
         .update(`${header}.${payload}`)
         .digest('base64url')
 
@@ -84,4 +84,4 @@ class JwtService {
   }
 }
 
-export const jwtService = new JwtService(process.env.SECRET_KEY)
+export const jwtService = new JwtService(process.env.JWT_SECRET_KEY)

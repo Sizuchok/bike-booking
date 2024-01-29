@@ -1,18 +1,12 @@
-import { Request } from 'express'
 import passport from 'passport'
-import { JwtFromRequestFunction, Strategy } from 'passport-jwt'
-import { ACCESS_TOKEN } from '../const/keys/common-keys.const'
+import { ExtractJwt, Strategy } from 'passport-jwt'
 import { authService } from '../services/auth.service'
 import { FullPayload } from '../services/jwt.service'
 
-const cookieExtractor: JwtFromRequestFunction<Request> = req => {
-  return req.cookies[ACCESS_TOKEN] ?? null
-}
-
 const JwtStrategy = new Strategy(
   {
-    jwtFromRequest: cookieExtractor as any,
-    secretOrKey: process.env.SECRET_KEY,
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.JWT_SECRET_KEY,
     ignoreExpiration: false,
   },
   async (payload: FullPayload, done) => {
@@ -32,4 +26,4 @@ const JwtStrategy = new Strategy(
 
 passport.use(JwtStrategy)
 
-export const jwtMiddleware = passport.authenticate('jwt', { session: false })
+export const jwtAuth = passport.authenticate('jwt', { session: false })
