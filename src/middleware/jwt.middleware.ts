@@ -6,7 +6,7 @@ import { FullPayload } from '../services/jwt.service'
 const JwtStrategy = new Strategy(
   {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.JWT_SECRET_KEY,
+    secretOrKey: process.dotEnv.JWT_SECRET_KEY,
     ignoreExpiration: false,
   },
   async (payload: FullPayload, done) => {

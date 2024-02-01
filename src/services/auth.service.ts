@@ -3,7 +3,6 @@ import { Collection, ObjectId } from 'mongodb'
 import { MONGO } from '../const/mongodb-key.const'
 import { client } from '../db/config'
 import { HttpError } from '../error/http-error'
-import { dotEnv } from '../types/global/process-env.types'
 import { SignUp, User, UserForMongo } from '../types/user.types'
 import { cryptoService } from './hashing/crypto.service'
 import { jwtService } from './jwt.service'
@@ -50,15 +49,15 @@ export class AuthService {
 
     const accessToken = jwtService.issue({
       sub: id,
-      ttl: +dotEnv.JWT_TTL,
+      ttl: process.dotEnv.JWT_TTL,
     })
 
     const refreshToken = jwtService.issue(
       {
         sub: id,
-        ttl: +dotEnv.REFRESH_JWT_TTL,
+        ttl: process.dotEnv.REFRESH_JWT_TTL,
       },
-      dotEnv.REFRESH_JWT_SECRET_KEY,
+      process.dotEnv.REFRESH_JWT_SECRET_KEY,
     )
 
     const user = await this.collection.findOneAndUpdate(
@@ -88,8 +87,8 @@ export class AuthService {
     return this.issueTokens(user)
   }
 
-  refresh = async (token: string): Promise<{ tokens: TokenPair; user: User }> => {
-    jwtService.verify(token, dotEnv.REFRESH_JWT_SECRET_KEY)
+  refresh = async (token: string): Promise<TokensAndUser> => {
+    jwtService.verify(token, process.dotEnv.REFRESH_JWT_SECRET_KEY)
 
     const user = await this.collection.findOneAndUpdate(
       {
@@ -108,7 +107,7 @@ export class AuthService {
       throw new HttpError(StatusCodes.UNAUTHORIZED, 'Recieved invalidated token')
     }
 
-    return await this.issueTokens(user)
+    return this.issueTokens(user)
   }
 }
 

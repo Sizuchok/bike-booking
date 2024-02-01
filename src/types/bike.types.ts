@@ -5,6 +5,8 @@ import { MongoId } from './common.types'
 
 export type Bike = MongoId & CreateBike
 
+export type BikeAvailability = z.infer<typeof createBikeSchema.shape.status>
+
 export type CreateBike = z.infer<typeof createBikeSchema>
 
 export type UpdateBike = z.infer<typeof updateBikeShema>

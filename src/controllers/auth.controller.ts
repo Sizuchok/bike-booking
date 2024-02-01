@@ -3,7 +3,6 @@ import { StatusCodes } from 'http-status-codes'
 import { REFRESH_TOKEN } from '../const/keys/common-keys.const'
 import { HttpError } from '../error/http-error'
 import { AuthService, TokensAndUser, authService } from '../services/auth.service'
-import { dotEnv } from '../types/global/process-env.types'
 import { SignIn, SignUp } from '../types/user.types'
 
 export class AuthController {
@@ -24,7 +23,9 @@ export class AuthController {
 
     res.cookie(REFRESH_TOKEN, refreshToken, {
       httpOnly: true,
-      maxAge: +dotEnv.REFRESH_JWT_TTL,
+      maxAge: process.dotEnv.REFRESH_JWT_TTL * 1000,
+      sameSite: 'none',
+      secure: true,
     })
 
     res.json({ user, accessToken })

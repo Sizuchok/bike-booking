@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb'
 
-const url = process.env.MONGO_DB_URL!
+const url = process.dotEnv.MONGO_DB_URL
 
 export const client = new MongoClient(url)
 

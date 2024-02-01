@@ -84,4 +84,4 @@ class JwtService {
   }
 }
 
-export const jwtService = new JwtService(process.env.JWT_SECRET_KEY)
+export const jwtService = new JwtService(process.dotEnv.JWT_SECRET_KEY)

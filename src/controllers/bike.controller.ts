@@ -19,7 +19,6 @@ export class BikeController {
 
   updateOneById = async (req: Request<{ id: string }, {}, UpdateBike>, res: Response) => {
     const { id } = req.params
-    console.log(req.body)
     const bike = await this.bikesService.updateOneById(id, req.body)
     res.json(bike)
   }

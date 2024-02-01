@@ -17,7 +17,7 @@ const LocalStrategy = new Strategy({ usernameField: 'email' }, async (email, pas
     }
   }
 
-  return done(new HttpError(StatusCodes.BAD_REQUEST, 'Invalid email or password'), false)
+  return done(new HttpError(StatusCodes.UNAUTHORIZED, 'Invalid email or password'), false)
 })
 
 passport.serializeUser<ObjectId>((user, done) => {
