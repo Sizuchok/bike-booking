@@ -11,7 +11,7 @@ export const bikesRouter: Router = Router()
 
 const { findAll, findOneById, updateOneById, createOne, deleteOne } = bikesController
 
-bikesRouter.get('/', jwtAuth, controllerWrapper(findAll))
+bikesRouter.get('/', controllerWrapper(findAll))
 
 bikesRouter.get(
   '/:id',

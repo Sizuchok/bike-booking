@@ -109,6 +109,13 @@ export class AuthService {
 
     return this.issueTokens(user)
   }
+
+  signOut = async (refreshToken: string) => {
+    await this.collection.updateOne(
+      { refreshTokens: refreshToken },
+      { $pull: { refreshTokens: refreshToken } },
+    )
+  }
 }
 
 export const authService = new AuthService(

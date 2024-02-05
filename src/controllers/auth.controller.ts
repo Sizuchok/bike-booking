@@ -33,7 +33,7 @@ export class AuthController {
 
   signInJwt = async (req: Request<{}, {}, SignIn>, res: Response) => {
     const user = req.user!
-    const data = await authService.signInWithJwt(user)
+    const data = await this.authService.signInWithJwt(user)
 
     this.attachTokens(res, data)
   }
@@ -54,6 +54,18 @@ export class AuthController {
 
       throw error
     }
+  }
+
+  signOut = async (req: Request, res: Response) => {
+    const token = req.cookies[REFRESH_TOKEN]
+
+    if (!token) {
+      throw new HttpError(StatusCodes.UNAUTHORIZED, 'Refresh token is missing')
+    }
+
+    await this.authService.signOut(token)
+
+    res.clearCookie(REFRESH_TOKEN, { httpOnly: true }).send()
   }
 }
 
