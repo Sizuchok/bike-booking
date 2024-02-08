@@ -4,7 +4,7 @@ type ControllerFunction<ReqParams, ResBody, ReqBody, ReqQuery> = (
   request: Request<ReqParams, ResBody, ReqBody, ReqQuery>,
   response: Response,
   next: NextFunction,
-) => Promise<void>
+) => Promise<unknown>
 
 export const controllerWrapper =
   <ReqParams, ResBody, ReqBody, ReqQuery>(

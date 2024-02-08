@@ -3,7 +3,7 @@ import { HashingService } from './hashing.service'
 
 export class CryptoService implements HashingService {
   async hash(data: string, salt?: string) {
-    salt ??= randomBytes(32).toString('hex')
+    salt ||= randomBytes(32).toString('hex')
     return new Promise<string>((resolve, reject) => {
       pbkdf2(data, salt!, 10000, 64, 'sha512', (err, derivedKey) => {
         if (err) {
