@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import { bikesController } from '../controllers/bike.controller'
-import { jwtAuth } from '../middleware/jwt.middleware'
 import { validateRequest } from '../middleware/validator.middleware'
 import { createBikeSchema } from '../schemas/bike/create-bike.schema'
 import { updateBikeShema } from '../schemas/bike/update-bike.schema'

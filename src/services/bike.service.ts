@@ -17,8 +17,30 @@ export class BikeService {
   }
 
   findAllBikes = async () => {
-    const bikes = this.collection.find().limit(20).toArray()
-    return bikes
+    const bikesAndStats = await this.collection
+      .aggregate([
+        {
+          $facet: {
+            totalBikes: [{ $count: 'count' }],
+            available: [{ $match: { status: 'available' } }, { $count: 'available' }],
+            busy: [{ $match: { status: 'busy' } }, { $count: 'busy' }],
+            avgPrice: [{ $group: { _id: null, avgPrice: { $avg: '$price' } } }],
+            bikes: [{ $limit: 20 }],
+          },
+        },
+        {
+          $project: {
+            count: { $arrayElemAt: ['$totalBikes.count', 0] },
+            available: { $arrayElemAt: ['$available.available', 0] },
+            busy: { $arrayElemAt: ['$busy.busy', 0] },
+            avgPrice: { $arrayElemAt: ['$avgPrice.avgPrice', 0] },
+            bikes: 1,
+          },
+        },
+      ])
+      .next()
+
+    return bikesAndStats
   }
 
   updateOneById = async (id: string, newData: UpdateBike) => {
