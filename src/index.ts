@@ -1,49 +1,5 @@
-import './config/dot-env-config'
-// --.env--
-import cookieParser from 'cookie-parser'
-import cors from 'cors'
-import express from 'express'
-import { bootstrap } from './db/config'
-import { exceptionFilter } from './middleware/exception-filter.middleware'
-import { AppRouter } from './routes'
+import { bootstrap, startExpress } from './server'
 
-const PORT = process.dotEnv.PORT
-const SESSION_SECRET = process.dotEnv.SESSION_SECRET
+export const PORT = process.dotEnv.PORT
 
-const app = express()
-app.use(
-  cors({
-    origin: process.dotEnv.FRONT_END_URL,
-    credentials: true,
-  }),
-)
-app.use(express.json())
-app.use(cookieParser())
-
-// const mongoStore = MongoStore.create({
-//   mongoUrl: process.dotEnv.MONGO_DB_URL,
-//   collectionName: MONGO.COLLECTIONS.SESSIONS,
-//   dbName: MONGO.DB_NAME,
-// })
-
-// app.use(
-//   session({
-//     secret: SESSION_SECRET,
-//     name: 'session_id',
-//     resave: false,
-//     cookie: {
-//       maxAge: 15 * 60 * 1000,
-//     },
-//     saveUninitialized: false,
-//     store: mongoStore,
-//   }),
-// )
-
-bootstrap(() => {
-  // app.use(passport.session())
-  // app.use(isAuthenticated)
-  new AppRouter(app).init()
-  app.use(exceptionFilter)
-
-  app.listen(PORT, () => console.log('Started on port: ' + PORT))
-})
+bootstrap(startExpress).then(app => app.listen(PORT, () => console.log('Started on port: ' + PORT)))

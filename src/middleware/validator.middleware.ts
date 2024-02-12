@@ -1,6 +1,8 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express'
+import { StatusCodes } from 'http-status-codes'
 import { ZodError, ZodSchema } from 'zod'
 import { fromZodError } from 'zod-validation-error'
+import { HttpError } from '../error/http-error'
 
 type ParamKey = 'body' | 'params' | 'query'
 
@@ -32,7 +34,7 @@ export const validateRequest = (validations: ValidatorParams): RequestHandler =>
         // next(new HttpError(StatusCodes.BAD_REQUEST, message))
 
         const validationError = fromZodError(error)
-        next(validationError)
+        next(new HttpError(StatusCodes.BAD_REQUEST, validationError.message))
       }
 
       next(error)

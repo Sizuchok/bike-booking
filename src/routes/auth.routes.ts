@@ -9,22 +9,15 @@ import { controllerWrapper } from '../utils/controller-wrapper.util'
 
 export const authRouter: Router = Router()
 
-const { signUp, signIn, signInJwt, refresh, signOut } = authController
+const { signUp, signIn, refresh, signOut } = authController
 
 authRouter.post('/sign-up', validateRequest({ body: signUpSchema }), controllerWrapper(signUp))
 
-// authRouter.post(
-//   '/sign-in',
-//   validateRequest({ body: signInSchema }),
-//   localMiddleware,
-//   controllerWrapper(signIn),
-// )
-
 authRouter.post(
-  '/sign-in-jwt',
+  '/sign-in',
   validateRequest({ body: signInSchema }),
   localMiddlewareNoSession,
-  controllerWrapper(signInJwt),
+  controllerWrapper(signIn),
 )
 
 authRouter.post('/sign-out', jwtAuth, controllerWrapper(signOut))

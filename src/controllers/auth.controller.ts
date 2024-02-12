@@ -13,11 +13,6 @@ export class AuthController {
     res.status(StatusCodes.CREATED).send()
   }
 
-  signIn = async (req: Request<{}, {}, SignIn>, res: Response) => {
-    const { password, ...rest } = req.user!
-    res.json({ ...rest })
-  }
-
   private attachTokens = (res: Response, { tokens, user }: TokensAndUser) => {
     const { accessToken, refreshToken } = tokens
 
@@ -31,7 +26,7 @@ export class AuthController {
     res.json({ user, accessToken })
   }
 
-  signInJwt = async (req: Request<{}, {}, SignIn>, res: Response) => {
+  signIn = async (req: Request<{}, {}, SignIn>, res: Response) => {
     const user = req.user!
     const data = await this.authService.signInWithJwt(user)
 

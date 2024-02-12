@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import { Collection, ObjectId } from 'mongodb'
 import { MONGO } from '../const/mongodb-key.const'
-import { client } from '../db/config'
+import { client } from '../db/db-config'
 import { HttpError } from '../error/http-error'
 import { SignUp, User, UserForMongo } from '../types/user.types'
 import { cryptoService } from './hashing/crypto.service'
@@ -88,7 +88,12 @@ export class AuthService {
   }
 
   refresh = async (token: string): Promise<TokensAndUser> => {
-    jwtService.verify(token, process.dotEnv.REFRESH_JWT_SECRET_KEY)
+    try {
+      jwtService.verify(token, process.dotEnv.REFRESH_JWT_SECRET_KEY)
+    } catch (error) {
+      const { message } = error as Error
+      throw new HttpError(StatusCodes.UNAUTHORIZED, message)
+    }
 
     const user = await this.collection.findOneAndUpdate(
       {
