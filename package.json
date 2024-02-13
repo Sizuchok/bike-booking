@@ -12,8 +12,10 @@
     "dev:node": "node --watch dist/index.js",
     "dev:esbuild": "yarn run build --watch",
     "dev": "run-p dev:*",
-    "test": "NODE_ENV=test vitest run",
-    "test:watch": "NODE_ENV=test vitest"
+    "test:e2e:watch": "NODE_ENV=test vitest --dir test",
+    "test:e2e": "yarn test:e2e:watch run",
+    "test:unit:watch": "vitest --dir src",
+    "test:unit": "yarn test:unit:watch run"
   },
   "author": "liiusion",
   "license": "ISC",

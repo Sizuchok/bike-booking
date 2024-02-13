@@ -16,7 +16,7 @@ type Payload = Pick<FullPayload, 'sub'> & {
   ttl: number
 }
 
-class JwtService {
+export class JwtService {
   constructor(private secretKey: string) {}
 
   issue = (payload: Payload, refreshSecret?: string) => {
@@ -83,5 +83,3 @@ class JwtService {
     }
   }
 }
-
-export const jwtService = new JwtService(process.dotEnv.JWT_SECRET_KEY)

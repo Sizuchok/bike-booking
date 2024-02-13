@@ -1,8 +1,10 @@
 import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { REFRESH_TOKEN } from '../const/keys/common-keys.const'
+import { userCollection } from '../db/collections.const'
 import { HttpError } from '../error/http-error'
-import { AuthService, TokensAndUser, authService } from '../services/auth.service'
+import { AuthService, TokensAndUser } from '../services/auth.service'
+import { JwtService } from '../services/jwt.service'
 import { SignIn, SignUp } from '../types/user.types'
 
 export class AuthController {
@@ -64,4 +66,6 @@ export class AuthController {
   }
 }
 
-export const authController = new AuthController(authService)
+const jwtService = new JwtService(process.dotEnv.JWT_SECRET_KEY)
+
+export const authController = new AuthController(new AuthService(userCollection, jwtService))

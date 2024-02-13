@@ -6,7 +6,7 @@ const url =
     ? process.dotEnv.MONGO_DB_TEST_URL
     : process.dotEnv.MONGO_DB_URL
 
-export let client = new MongoClient(url)
+export const client = new MongoClient(url)
 
 export const bootstrap = async (startExpress: () => Express) => {
   try {
@@ -15,9 +15,7 @@ export const bootstrap = async (startExpress: () => Express) => {
 
     return startExpress()
   } catch (error) {
-    if (error instanceof Error) {
-      client.close()
-    }
+    await client.close()
 
     throw error
   }

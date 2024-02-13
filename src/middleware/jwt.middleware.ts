@@ -1,7 +1,8 @@
 import passport from 'passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import { authService } from '../services/auth.service'
-import { FullPayload } from '../services/jwt.service'
+import { FullPayload, JwtService } from '../services/jwt.service'
+import { AuthService } from '../services/auth.service'
+import { userCollection } from '../db/collections.const'
 
 const JwtStrategy = new Strategy(
   {
@@ -11,6 +12,8 @@ const JwtStrategy = new Strategy(
   },
   async (payload: FullPayload, done) => {
     try {
+      const jwtService = new JwtService(process.dotEnv.JWT_SECRET_KEY)
+      const authService = new AuthService(userCollection, jwtService)
       const user = await authService.findOneById(payload.sub as string)
 
       if (!user) {

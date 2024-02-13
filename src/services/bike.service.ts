@@ -1,7 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
 import { Collection, ObjectId } from 'mongodb'
-import { MONGO } from '../const/mongodb-key.const'
-import { client } from '../db/db-config'
 import { HttpError } from '../error/http-error'
 import { Bike, CreateBike, UpdateBike } from '../types/bike.types'
 
@@ -77,7 +75,3 @@ export class BikeService {
     }
   }
 }
-
-export const bikesService = new BikeService(
-  client.db(MONGO.DB_NAME).collection(MONGO.COLLECTIONS.BIKES),
-)
