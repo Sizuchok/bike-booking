@@ -1,12 +1,12 @@
 import { Express } from 'express'
 import { MongoClient } from 'mongodb'
 
-const url =
+const url = () =>
   process.dotEnv.NODE_ENV === 'test'
     ? process.dotEnv.MONGO_DB_TEST_URL
     : process.dotEnv.MONGO_DB_URL
 
-export const client = new MongoClient(url)
+export const client = new MongoClient(url())
 
 export const bootstrap = async (startExpress: () => Express) => {
   try {

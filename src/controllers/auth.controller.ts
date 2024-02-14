@@ -30,7 +30,7 @@ export class AuthController {
 
   signIn = async (req: Request<{}, {}, SignIn>, res: Response) => {
     const user = req.user!
-    const data = await this.authService.signInWithJwt(user)
+    const data = await this.authService.signIn(user)
 
     this.attachTokens(res, data)
   }

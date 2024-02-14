@@ -96,6 +96,8 @@ describe('[FEATURE] auth - /auth', () => {
         user: expect.any(Object),
         accessToken: expect.any(String),
       })
+      expect(response.body.user).not.toHaveProperty('password')
+      expect(response.body.user).not.toHaveProperty('refreshTokens')
     })
 
     it('responds with 401 on invalid sign-in creds', async () => {
@@ -128,6 +130,9 @@ describe('[FEATURE] auth - /auth', () => {
         user: expect.any(Object),
         accessToken: expect.any(String),
       })
+      expect(res.body.user).not.toHaveProperty('password')
+      expect(res.body.user).not.toHaveProperty('refreshTokens')
+
       const cookies = res.headers['set-cookie'] as string[] | undefined
 
       const isRefreshToken = cookies?.find(cookie => cookie.includes('refreshToken'))

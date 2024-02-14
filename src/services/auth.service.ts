@@ -82,7 +82,7 @@ export class AuthService {
     }
   }
 
-  signInWithJwt = async (user: User): Promise<TokensAndUser> => {
+  signIn = async (user: User): Promise<TokensAndUser> => {
     return this.issueTokens(user)
   }
 
