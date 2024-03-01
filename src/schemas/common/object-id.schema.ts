@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { z } from 'zod'
 
-const isObjectIdSchema = z.string().refine(value => ObjectId.isValid(value), {
+export const isObjectIdSchema = z.string().refine(value => ObjectId.isValid(value), {
   message: 'Id must be of type ObjectId',
 })
 
