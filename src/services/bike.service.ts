@@ -1,7 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
 import { Collection, ObjectId } from 'mongodb'
-import { MONGO } from '../const/mongodb-key.const'
-import { client } from '../db/config'
 import { HttpError } from '../error/http-error'
 import { Bike, CreateBike, UpdateBike } from '../types/bike.types'
 
@@ -63,7 +61,7 @@ export class BikeService {
     const bike = await this.collection.findOne({ _id: new ObjectId(result.insertedId) })
 
     if (!result.insertedId) {
-      throw new HttpError(StatusCodes.BAD_GATEWAY, 'Failed to add a bike')
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'Failed to add a bike')
     }
 
     return bike
@@ -73,11 +71,7 @@ export class BikeService {
     const result = await this.collection.deleteOne({ _id: new ObjectId(id) })
 
     if (!result.deletedCount) {
-      throw new HttpError(StatusCodes.BAD_GATEWAY, 'Bike not found for deletion')
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'Bike not found for deletion')
     }
   }
 }
-
-export const bikesService = new BikeService(
-  client.db(MONGO.DB_NAME).collection(MONGO.COLLECTIONS.BIKES),
-)

@@ -1,11 +1,9 @@
 import { StatusCodes } from 'http-status-codes'
 import { Collection, ObjectId } from 'mongodb'
-import { MONGO } from '../const/mongodb-key.const'
-import { client } from '../db/config'
 import { HttpError } from '../error/http-error'
 import { SignUp, User, UserForMongo } from '../types/user.types'
-import { cryptoService } from './hashing/crypto.service'
-import { jwtService } from './jwt.service'
+import { CryptoService } from './hashing/crypto.service'
+import { JwtService } from './jwt.service'
 
 export type TokenPair = {
   accessToken: string
@@ -18,7 +16,8 @@ export type TokensAndUser = {
 }
 
 export class AuthService {
-  constructor(private collection: Collection<UserForMongo>) {}
+  private cryptoService: CryptoService = new CryptoService()
+  constructor(private collection: Collection<UserForMongo>, private jwtService: JwtService) {}
 
   signUp = async (credentials: SignUp) => {
     const user = await this.collection.findOne({ email: credentials.email })
@@ -27,7 +26,7 @@ export class AuthService {
       throw new HttpError(StatusCodes.CONFLICT, 'This email is already associated with an account.')
     }
 
-    const hashedPwd = await cryptoService.hash(credentials.password)
+    const hashedPwd = await this.cryptoService.hash(credentials.password)
 
     await this.collection.insertOne({ ...credentials, password: hashedPwd } as User)
   }
@@ -47,12 +46,12 @@ export class AuthService {
   private issueTokens = async ({ _id }: User): Promise<TokensAndUser> => {
     const id = _id.toString()
 
-    const accessToken = jwtService.issue({
+    const accessToken = this.jwtService.issue({
       sub: id,
       ttl: process.dotEnv.JWT_TTL,
     })
 
-    const refreshToken = jwtService.issue(
+    const refreshToken = this.jwtService.issue(
       {
         sub: id,
         ttl: process.dotEnv.REFRESH_JWT_TTL,
@@ -83,12 +82,17 @@ export class AuthService {
     }
   }
 
-  signInWithJwt = async (user: User): Promise<TokensAndUser> => {
+  signIn = async (user: User): Promise<TokensAndUser> => {
     return this.issueTokens(user)
   }
 
   refresh = async (token: string): Promise<TokensAndUser> => {
-    jwtService.verify(token, process.dotEnv.REFRESH_JWT_SECRET_KEY)
+    try {
+      this.jwtService.verify(token, process.dotEnv.REFRESH_JWT_SECRET_KEY)
+    } catch (error) {
+      const { message } = error as Error
+      throw new HttpError(StatusCodes.UNAUTHORIZED, message)
+    }
 
     const user = await this.collection.findOneAndUpdate(
       {
@@ -117,7 +121,3 @@ export class AuthService {
     )
   }
 }
-
-export const authService = new AuthService(
-  client.db(MONGO.DB_NAME).collection(MONGO.COLLECTIONS.USERS),
-)

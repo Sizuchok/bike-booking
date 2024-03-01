@@ -1,8 +1,10 @@
 import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { REFRESH_TOKEN } from '../const/keys/common-keys.const'
+import { userCollection } from '../db/collections.const'
 import { HttpError } from '../error/http-error'
-import { AuthService, TokensAndUser, authService } from '../services/auth.service'
+import { AuthService, TokensAndUser } from '../services/auth.service'
+import { JwtService } from '../services/jwt.service'
 import { SignIn, SignUp } from '../types/user.types'
 
 export class AuthController {
@@ -11,11 +13,6 @@ export class AuthController {
   signUp = async (req: Request<{}, {}, SignUp>, res: Response) => {
     await this.authService.signUp(req.body)
     res.status(StatusCodes.CREATED).send()
-  }
-
-  signIn = async (req: Request<{}, {}, SignIn>, res: Response) => {
-    const { password, ...rest } = req.user!
-    res.json({ ...rest })
   }
 
   private attachTokens = (res: Response, { tokens, user }: TokensAndUser) => {
@@ -31,9 +28,9 @@ export class AuthController {
     res.json({ user, accessToken })
   }
 
-  signInJwt = async (req: Request<{}, {}, SignIn>, res: Response) => {
+  signIn = async (req: Request<{}, {}, SignIn>, res: Response) => {
     const user = req.user!
-    const data = await this.authService.signInWithJwt(user)
+    const data = await this.authService.signIn(user)
 
     this.attachTokens(res, data)
   }
@@ -69,4 +66,6 @@ export class AuthController {
   }
 }
 
-export const authController = new AuthController(authService)
+const jwtService = new JwtService(process.dotEnv.JWT_SECRET_KEY)
+
+export const authController = new AuthController(new AuthService(userCollection, jwtService))

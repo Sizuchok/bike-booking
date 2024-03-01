@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { BikeService, bikesService } from '../services/bike.service'
+import { BikeService } from '../services/bike.service'
 import { CreateBike, UpdateBike } from '../types/bike.types'
+import { bikeCollection } from '../db/collections.const'
 
 export class BikeController {
   constructor(private bikesService: BikeService) {}
@@ -34,5 +35,7 @@ export class BikeController {
     res.status(StatusCodes.NO_CONTENT).send()
   }
 }
+
+const bikesService = new BikeService(bikeCollection)
 
 export const bikesController = new BikeController(bikesService)

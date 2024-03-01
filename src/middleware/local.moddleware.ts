@@ -1,15 +1,20 @@
 import { StatusCodes } from 'http-status-codes'
-import { ObjectId } from 'mongodb'
 import passport from 'passport'
 import { Strategy } from 'passport-local'
+import { userCollection } from '../db/collections.const'
 import { HttpError } from '../error/http-error'
-import { authService } from '../services/auth.service'
-import { cryptoService } from '../services/hashing/crypto.service'
+import { AuthService } from '../services/auth.service'
+import { CryptoService } from '../services/hashing/crypto.service'
+import { JwtService } from '../services/jwt.service'
 
 const LocalStrategy = new Strategy({ usernameField: 'email' }, async (email, password, done) => {
+  const jwtService = new JwtService(process.dotEnv.JWT_SECRET_KEY)
+  const authService = new AuthService(userCollection, jwtService)
+
   const user = await authService.findOneByEmail(email)
 
   if (user) {
+    const cryptoService = new CryptoService()
     const isValid = await cryptoService.compare(password, user.password)
 
     if (isValid) {
@@ -18,24 +23,6 @@ const LocalStrategy = new Strategy({ usernameField: 'email' }, async (email, pas
   }
 
   return done(new HttpError(StatusCodes.UNAUTHORIZED, 'Invalid email or password'), false)
-})
-
-passport.serializeUser<ObjectId>((user, done) => {
-  process.nextTick(() => {
-    return done(null, user._id)
-  })
-})
-
-passport.deserializeUser<string>(async (id, done) => {
-  const user = await authService.findOneById(id)
-
-  if (!user) {
-    return done(new HttpError(StatusCodes.NOT_FOUND, 'User not found'))
-  }
-
-  process.nextTick(() => {
-    done(null, user)
-  })
 })
 
 passport.use(LocalStrategy)
