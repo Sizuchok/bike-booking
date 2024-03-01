@@ -23,7 +23,7 @@ export const E_REFRESH_TOKEN = jwtService.issue(
 const plainUserPwd = 'Password123' as const
 const plainUserEmail = 'test@mail.com' as const
 
-export const fixtureUser: User = {
+export const userFixture: User = {
   _id,
   name: 'Test',
   email: plainUserEmail,

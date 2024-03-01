@@ -10,8 +10,8 @@ import {
   E_REFRESH_TOKEN,
   NE_ACCESS_TOKEN,
   NE_REFRESH_TOKEN,
-  fixtureUser,
   plainUser,
+  userFixture,
 } from './test-data/auth.test-data'
 
 const app = await bootstrap(startExpress)
@@ -20,7 +20,7 @@ const users = client.db(MONGO.DB_NAME).collection(MONGO.COLLECTIONS.USERS)
 
 beforeEach(async () => {
   await users.drop()
-  await users.insertOne(fixtureUser)
+  await users.insertOne(userFixture)
 })
 
 afterAll(async () => {
