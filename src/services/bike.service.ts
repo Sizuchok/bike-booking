@@ -1,13 +1,25 @@
 import { StatusCodes } from 'http-status-codes'
 import { Collection, ObjectId } from 'mongodb'
 import { HttpError } from '../error/http-error'
-import { Bike, CreateBike, UpdateBike } from '../types/bike.types'
+import { Bike, BikeForMongo, BikeStatuses, CreateBike, UpdateBike } from '../types/bike.types'
+import { UserForMongo } from '../types/user.types'
+
+const bikeMongoStatusesMap: {
+  [key in BikeStatuses]: BikeStatuses[]
+} = {
+  available: ['busy', 'unavailable'],
+  unavailable: ['available'],
+  busy: ['available'],
+}
 
 export class BikeService {
-  constructor(private collection: Collection<Omit<Bike, '_id'>>) {}
+  constructor(
+    private bikesCollection: Collection<BikeForMongo>,
+    private usersCollection: Collection<UserForMongo>,
+  ) {}
 
   findOneById = async (id: string) => {
-    const bike = await this.collection.findOne({ _id: new ObjectId(id) })
+    const bike = await this.bikesCollection.findOne({ _id: new ObjectId(id) })
 
     if (!bike) throw new HttpError(StatusCodes.NOT_FOUND, 'Bike not found')
 
@@ -15,7 +27,7 @@ export class BikeService {
   }
 
   findAllBikes = async () => {
-    const bikesAndStats = await this.collection
+    const bikesAndStats = await this.bikesCollection
       .aggregate([
         {
           $facet: {
@@ -41,8 +53,20 @@ export class BikeService {
     return bikesAndStats
   }
 
-  updateOneById = async (id: string, newData: UpdateBike) => {
-    const bike = await this.collection.findOneAndUpdate(
+  private makeBikeUnOrAvailable = async (id: string, newData: UpdateBike) => {
+    const oldBike = await this.bikesCollection.findOne({
+      _id: new ObjectId(id),
+      status: { $in: bikeMongoStatusesMap[newData.status!] },
+    })
+
+    if (!oldBike) {
+      throw new HttpError(
+        StatusCodes.BAD_REQUEST,
+        'Bike not found or it cannot be updated to specified status',
+      )
+    }
+
+    const updatedBike = await this.bikesCollection.findOneAndUpdate(
       { _id: new ObjectId(id) },
       { $set: newData },
       {
@@ -50,25 +74,105 @@ export class BikeService {
       },
     )
 
-    if (!bike) throw new HttpError(StatusCodes.BAD_REQUEST, 'Bike not found for update')
+    // if bike old status was not 'busy', then there is no need to delete if from users
+    if (!oldBike?.bookedById) {
+      return updatedBike
+    }
+
+    const userUpdate = await this.usersCollection.updateOne(
+      { _id: new ObjectId(oldBike.bookedById) },
+      { $pull: { booked: { _id: new ObjectId(updatedBike?._id) } } },
+    )
+
+    if (!userUpdate.modifiedCount) {
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'Failed to update user')
+    }
+
+    return updatedBike
+  }
+
+  private makeBikeBusy = async (id: string, newData: UpdateBike) => {
+    const bike = await this.bikesCollection.findOneAndUpdate(
+      { _id: new ObjectId(id), status: { $in: bikeMongoStatusesMap[newData.status!] } },
+      { $set: newData },
+      {
+        returnDocument: 'after',
+      },
+    )
+
+    if (!bike) {
+      throw new HttpError(
+        StatusCodes.BAD_REQUEST,
+        'Bike not found or it cannot be updated to specified status',
+      )
+    }
+
+    const updatedOwnder = await this.usersCollection.updateOne(
+      { _id: new ObjectId(bike.ownerId), 'bikes._id': bike._id },
+      { $set: { 'bikes.$.status': newData.status } },
+    )
+
+    const udpatedBookedBy = await this.usersCollection.updateOne(
+      { _id: new ObjectId(newData.bookedById!) },
+      { $push: { booked: bike } },
+    )
+
+    if (!udpatedBookedBy.modifiedCount || !updatedOwnder.modifiedCount) {
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'Failed to update user')
+    }
 
     return bike
   }
 
-  createOne = async (newBike: CreateBike) => {
-    const result = await this.collection.insertOne(newBike)
+  updateOneById = async (id: string, newData: UpdateBike) => {
+    if (!newData.status) {
+      const bike = await this.bikesCollection.findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: newData },
+        {
+          returnDocument: 'after',
+        },
+      )
 
-    const bike = await this.collection.findOne({ _id: new ObjectId(result.insertedId) })
+      if (!bike) {
+        throw new HttpError(StatusCodes.BAD_REQUEST, 'Bike not found for update')
+      }
+
+      return bike
+    }
+
+    if (newData.status !== 'busy') {
+      return this.makeBikeUnOrAvailable(id, newData)
+    }
+
+    return this.makeBikeBusy(id, newData)
+  }
+
+  createOne = async (newBike: CreateBike) => {
+    const result = await this.bikesCollection.insertOne(newBike as Bike)
+
+    const bike = await this.bikesCollection.findOne({ _id: new ObjectId(result.insertedId) })
 
     if (!result.insertedId) {
       throw new HttpError(StatusCodes.BAD_REQUEST, 'Failed to add a bike')
+    }
+
+    const userUpdate = await this.usersCollection.updateOne(
+      { _id: new ObjectId(newBike.ownerId) },
+      { $push: { bikes: bike } },
+    )
+
+    if (!userUpdate.modifiedCount) {
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'Failed to update user')
     }
 
     return bike
   }
 
   deleteOne = async (id: string) => {
-    const result = await this.collection.deleteOne({ _id: new ObjectId(id) })
+    const result = await this.bikesCollection.deleteOne({ _id: new ObjectId(id) })
+
+    // User: delete from bikes[] or booked[] where bike.id === id
 
     if (!result.deletedCount) {
       throw new HttpError(StatusCodes.BAD_REQUEST, 'Bike not found for deletion')

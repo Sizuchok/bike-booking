@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isObjectIdSchema } from '../common/object-id.schema'
 
 export const createBikeSchema = z
   .object({
@@ -19,6 +20,11 @@ export const createBikeSchema = z
       })
       .positive(),
     description: z.string().max(500),
-    status: z.enum(['available', 'unavailable', 'busy'] as const),
+    status: z.enum(['available', 'unavailable'] as const),
+    ownerId: isObjectIdSchema,
+    ownerInfo: z.object({
+      name: z.string().min(3).max(20),
+      email: z.string().email(),
+    }),
   })
   .strict()

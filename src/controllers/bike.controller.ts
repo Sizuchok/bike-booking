@@ -1,8 +1,8 @@
 import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
+import { bikeCollection, userCollection } from '../db/collections.const'
 import { BikeService } from '../services/bike.service'
 import { CreateBike, UpdateBike } from '../types/bike.types'
-import { bikeCollection } from '../db/collections.const'
 
 export class BikeController {
   constructor(private bikesService: BikeService) {}
@@ -36,6 +36,6 @@ export class BikeController {
   }
 }
 
-const bikesService = new BikeService(bikeCollection)
+const bikesService = new BikeService(bikeCollection, userCollection)
 
 export const bikesController = new BikeController(bikesService)
